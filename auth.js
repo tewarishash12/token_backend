@@ -26,6 +26,20 @@ app.post("/register", async(req,res)=>{
     }
 })
 
+app.post("/token", async()=>{
+    const refresh_token = req.body.token;
+    if(!refresh_tokens.has(refresh_token))
+        return res.status(401).json({message:"You need to login"})
+
+    jwt.verify(refresh_token, process.env.MAIN_SECRET, (err,data)=>{
+        if(err)
+            return res.status(400).json({message:"Forbidden"});
+        const token = generateToken(token_data)
+        return res.status(201).json({message:"You are verified"});
+    })
+
+})
+
 app.post("/login", async(req,res)=>{
     try{
         const {username, password} = req.body;
@@ -39,7 +53,6 @@ app.post("/login", async(req,res)=>{
         const userInfo ={username:user.username};
         const token_data = {user:userInfo};
 
- 
         const refresh_token = jwt.sign(userInfo, MAIN_SECRET); 
         refresh_tokens.add(refresh_token)
         const token = generateToken(token_data)

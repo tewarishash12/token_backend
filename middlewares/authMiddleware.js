@@ -10,7 +10,8 @@ function authMiddleware(req, res, next) {
     jwt.verify(token, process.env.MAIN_SECRET, (err, userinfo) => {
         if (err)
             return res.status(400).json({ message: err.message });
-        req.user = userinfo.username;
+        console.log(userinfo)
+        req.user = userinfo.user.username;
         next();
     })
 }
