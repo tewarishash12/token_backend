@@ -6,7 +6,10 @@ const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
 const users = [];
-const JWT_SECRET = process.env.JWT_SECRET
+const refresh_tokens = new Set();
+
+const MAIN_SECRET = process.env.MAIN_SECRET
+const AUTH_SECRET = process.env.AUTH_SECRET
 
 app.use(express.json());
 
@@ -33,15 +36,23 @@ app.post("/login", async(req,res)=>{
         if(!isMatched)
             res.json({message: "Password entered is wrong"});
 
-        const userInfo ={username:user.username}
+        const userInfo ={username:user.username};
+        const token_data = {user:userInfo};
 
-        const token = jwt.sign(userInfo, JWT_SECRET, {expiresIn:"20s"})
-
-        res.status(201).json(token);
+ 
+        const refresh_token = jwt.sign(userInfo, MAIN_SECRET); 
+        refresh_tokens.add(refresh_token)
+        const token = generateToken(token_data)
+        
+        res.status(201).json({auth_token: token, refresh_token: refresh_token});
     } catch(err){
         res.status(400).json({message:err.message})
     }
 })
+
+function generateToken(data){
+    return jwt.sign(data, AUTH_SECRET, {expiresIn:"20s"})
+}
 
 app.listen(process.env.AUTH_PORT, ()=>{
     console.log("Connected to authentication server", "http://localhost:3997/");
